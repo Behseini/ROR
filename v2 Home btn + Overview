@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="http://js.arcgis.com/3.14/esri/css/esri.css">
+
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+            <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+        <style>
+  html, body, #mapDiv {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+  }
+             #HomeButton {
+      position: absolute;
+      top: 200px;
+      left: 20px;
+      z-index: 50;
+    }
+            .esriPopup .esriPopupWrapper {}
+  .title{padding:10px;}
+.titlePane .maximize{display:none;}
+.titlePane .close{margin:10px;}
+.esriPopup .sizer .actionsPane { min-height:40px; background-color: #444;}
+.esriPopup .sizer .contentPane{padding:7px;min-height: 340px;}
+.esriPopup .sizer .actionsPane .actionList > a{display:none;}
+.esriPopup .sizer .actionsPane .actionList > p{ color:#ccc; margin:9px 8px 8px 7px;}
+.marker-info{margin-bottom:0px;}
+.marker-info-txt{color:#888; font-family: 'Open Sans', sans-serif; font-size: 11px;}
+
+circle{  fill:green;box-shadow: 6px 4px 10px 10px #888888;}
+circle:hover{ cursor:pointer; fill:blue;}
+            
+            
+path {stroke-width: 0px;}         
+</style>
+    </head>
+    <body>
+      <div class="well well-sm">
+          <button type="button" id="map-type" data-index="0" class="btn btn-default btn-layers">Default</button>
+          <button type="button" id="map-OSM"  data-index="1" class="btn btn-default btn-layers">OSM</button>
+          <button type="button" id="map-points"   class="btn btn-default">Show Points</button>
+        <div class="row">
+          <select id="base-map-options">
+    <option value="1">Imagery</option>
+    <option value="2">Imagery with Labels</option>
+    <option value="0">Streets</option>
+    <option value="3">Streets</option>
+    <option value="4">Topographic</option>
+    <option value="6">Dark Grey</option>
+    <option value="5">Light Grey</option>
+    <option value="8">National Geographic</option>
+    <option value="7">Oceans</option>
+    <option value="9">Topographic With Lable</option>
+</select>
+          
+          </div>
+        </div> 
+        
+  <div data-dojo-type="dijit/layout/BorderContainer" 
+         data-dojo-props="design:'headline', gutters:false" 
+         style="width: 100%; height: 100%; margin:0;">
+
+      <div id="mapDiv" 
+           data-dojo-type="dijit/layout/ContentPane" 
+           data-dojo-props="region:'center'" 
+           style="padding:0">
+          
+      </div>
+       <div id="HomeButton"></div>
+    </div>
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <script src="http://js.arcgis.com/3.14/"></script>
+        <script>
+        var map;
+        var basemap = ['streets','satellite','hybrid','terrain','topo','gray','dark-gray','oceans','national-geographic','osm'];
+            var points = [];
+        require([
+        "esri/map",
+        "esri/layers/ArcGISDynamicMapServiceLayer",
+        "esri/geometry/Geometry",
+        "esri/geometry/Point",
+        "esri/graphic",
+        "esri/symbols/SimpleMarkerSymbol",
+        "esri/symbols/SimpleLineSymbol",
+        "esri/symbols/SimpleFillSymbol",
+        "esri/Color",
+        "esri/InfoTemplate",
+        "esri/dijit/HomeButton",
+        "esri/dijit/OverviewMap",
+        "dojo/parser", 
+        "dijit/layout/BorderContainer", 
+        "dijit/layout/ContentPane",
+        "dojo/domReady!"
+        ], function(Map, ArcGISDynamicMapServiceLayer, Geometry, Point, Graphic, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, InfoTemplate, HomeButton, OverviewMap,   parser) {
+              parser.parse(); 
+                            map = new Map("mapDiv", {
+                            center: [-126.687482, 54.793577],
+                            zoom: 5,
+                            basemap: basemap[0]
+                            });
+            
+            
+            
+        var overviewMap = new OverviewMap({
+          map: map,
+          visible: true
+        });
+        overviewMap.startup();
+     
+            
+      var home = new HomeButton({
+        map: map
+    }, "HomeButton");
+    home.startup();
+            
+            
+            
+    lyrPath="http://renewableapp/nipa/rest/services/RORMap/MapServer";
+    var lyr = new ArcGISDynamicMapServiceLayer(lyrPath);
+  
+         function updateLayerVisibility (index) {   
+            lyr.setVisibleLayers([index]);
+          map.addLayer(lyr);
+         }
+  $("#base-map-options").on("change", function () {
+
+      map.setBasemap(basemap[$('option:selected').val()]);
+});
+            
+
+            
+        $(".btn-layers").on("click", function(){
+            var index = $(this).data("index");
+            updateLayerVisibility (index);
+        });
+ 
+            
+                    $("#map-points").on("click", function(){
+    var qString= { sql : 'SELECT projID, x, y, roadLength, powerLineLength, penstock, installedCapMw, annualFirmEnergy, costOfEnergy, footprint, costPerYear FROM `single-ecolo-dis-yes-tbl` WHERE `cd_5000` =1 AND `animalID` =\'sinani-02\''};
+                            var request = $.ajax({
+    type: "POST",
+    url: "points.php",
+    data: qString,
+    cache: false,
+    dataType: "JSON",
+    beforeSend: function() {
+        // Do Something Like:
+        //$("#Lazy-Load-Div").css("display", "block");
+        console.log(qString );
+    }
+});
+
+request.done(function( mapInfo) {
+                 for (var i = 0; i < mapInfo.length; i++) {
+        var project = mapInfo[i];
+                     
+  var point = new Point(project.Longitude, project.Latitude); 
+        var pointSymbol = new SimpleMarkerSymbol(); 
+    pointSymbol.setStyle(SimpleMarkerSymbol.STYLE_CIRCLE);
+    pointSymbol.setSize(12);
+    var pointInfoTemplate = new InfoTemplate(); 
+             pointInfoTemplate.setTitle("Project Details");
+          pointInfoTemplate.setContent('     <div class="list-group marker-info"> <a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Project</span><span class="col-md-3 marker-info-txt"><strong>'+project.ProjectID+'</strong></span></div></a> <a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Road Length</span><span class="col-md-3 marker-info-txt"><strong>'+project.RoadLength+'</strong></span></div></a> <a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Powerline Length</span><span class="col-md-3 marker-info-txt"><strong>'+project.PowerLineLength+'</strong></span></div></a> <a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Penstock</span><span class="col-md-3 marker-info-txt"><strong>'+project.Penstock+'</strong></span></div></a> <a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Installed Capacity</span><span class="col-md-3 marker-info-txt"><strong>'+project.InstalledCapacity+'</strong></span></div></a><a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Annual Firm Energy</span><span class="col-md-3 marker-info-txt"><strong>'+project.AnnualFirmEnergy+'</strong></span></div></a><a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Cost Of Energy</span><span class="col-md-3 marker-info-txt"><strong>'+project.CostOfEnergy+'</strong></span></div></a><a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Footprint</span><span class="col-md-3 marker-info-txt"><strong>'+project.Footprint+'</strong></span></div></a><a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Cost Per Year</span><span class="col-md-3 marker-info-txt"><strong>'+project.CostPerYear+'</strong></span></div></a></div> ');
+        var pointGraphic = new Graphic(point, pointSymbol).setInfoTemplate(pointInfoTemplate);
+        points.push(pointGraphic);
+ 
+  
+                    }// End of For iterator
+     for (i = 0; i < points.length; ++i) {
+            map.graphics.add(points[i]);
+        }
+});
+ 
+request.fail(function( jqXHR, textStatus ) {
+  console.log( "Request failed: " + textStatus );
+}); 
+
+        });
+            
+
+            
+            
+   
+ 
+       
+$("body").on("click", "circle", function(){
+ $('.actionList').html('<p>© Renewables Toolbox - SFU</p>');
+});            
+           
+            
+            
+            
+            
+            
+            
+        });
+//});
+
+        </script>
+        
+
+        
+        
+        
+        
+        
+        
+    </body>
+</html>
