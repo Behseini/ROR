@@ -1,0 +1,520 @@
+var selectedETarget      = null;
+var selectedETargetNum   = null;
+var selectedETargetStr   = null;
+var selectedSingleAnimal = null;
+var selectedMultiAnimals = null;
+var selectedBalanceType  = "bal";
+
+
+var isModelEcolo   = null;
+var isModelSingle  = null;
+var isModelWithDis = null;
+
+
+//================================================================  Track Changes
+    
+    $('#energy-target-selector').on('change', function() {
+        selectedETargetStr = $(this).val();
+        $('.num').eq(0).css("background-color", "grey");
+    });
+    
+    $('input:checkbox[name=projectsWith]').eq(4).change(function(){
+    if($(this).is(':checked')){
+        $('input:checkbox[name=projectsWith]').prop( "checked", true );
+        selectedETargetNum = "cdef";
+    }
+    else{
+       $('input:checkbox[name=projectsWith]').prop( "checked", false );
+        selectedETargetNum = null;
+        }
+});
+    
+    $('input:checkbox[name=projectsWith]').on('change', function() {
+        var val = '';
+        $('input:checkbox[name=projectsWith]:checked').each(function(){
+           val += $(this).val();
+          });
+             switch (val) {
+            case 'c':
+                selectedETargetNum = val;
+                break;
+            case 'd':
+                selectedETargetNum = val;
+                break;
+            case 'e':
+                selectedETargetNum = val;
+                break;
+            case 'f':
+                selectedETargetNum = val;
+                break;
+            case 'cd':
+                selectedETargetNum = val;
+                break;
+            case 'ce':
+                selectedETargetNum = val;
+                break;
+            case 'cf':
+                selectedETargetNum = val;
+                break;
+            case 'de':
+                selectedETargetNum = val;
+                break;
+            case 'df':
+                selectedETargetNum = val;
+                break;
+            case 'ef':
+                selectedETargetNum = val;
+                break;
+            case 'cde':
+                selectedETargetNum = val;
+                break;
+            case 'cef':
+                selectedETargetNum = val;
+                break;
+            case 'cdf':
+                selectedETargetNum = val;
+                break;
+            case 'def':
+                selectedETargetNum = val;
+                break;
+            case 'cdef':
+                selectedETargetNum = val;
+                break;
+        }
+        $('.num').eq(1).css("background-color", "grey");
+    });
+
+
+    $('input:radio[name=withDisturbance]').on('change', function() {
+        var val = $('input:radio[name=withDisturbance]:checked').val();
+        switch (val) {
+            case 'withOutDisturbance':
+                isModelWithDis = false;
+                break;
+            case 'withDisturbance':
+                isModelWithDis = true;
+                break;
+            }
+        $('.num').eq(2).css("background-color", "grey");
+    });
+   
+    $('input:radio[name=withOverlap]').on('change', function() {
+        var val = $('input:radio[name=withOverlap]:checked').val();
+        switch (val) {
+            case 'single':
+                isModelEcolo = true;
+                isModelSingle= true;
+                $('#query-error').slideUp();
+                $('#balance').slideDown();
+                $('#multi-list-group').slideUp();
+                $('#single-list-group').hide().removeClass('hidden').slideDown();
+                break;
+            case 'multi':
+                isModelEcolo = true;
+                isModelSingle = false;
+                $('#query-error').slideUp();
+                $('#balance').slideDown();
+                $('#single-list-group').slideUp();
+                $('#multi-list-group').hide().removeClass('hidden').slideDown();
+                break;
+            case 'none':
+                isModelEcolo = false;
+                $('#query-error').slideUp();
+                $('#single-list-group').slideUp();
+                $('#multi-list-group').slideUp();
+                $('#balance').slideUp();
+                break;
+            }
+        $('.num').eq(3).css("background-color", "grey");
+    });
+    
+    $('input:radio[name=balance]').on('change', function() {
+         var value = $("#slider").slider("value");
+         var val = $('input:radio[name=balance]:checked').val();
+             switch (val) {
+            case 'economics':
+                selectedBalanceType = "econo";
+                $("#slider").slider("value", 0);
+                break;
+            case 'balanced':
+                selectedBalanceType = "bal";     
+                $("#slider").slider("value", 50);
+                break;
+            case 'ecology':
+                selectedBalanceType = "ecolo";       
+                $("#slider").slider("value", 100);
+                break;
+            default:
+               selectedBalanceType = "bal";         
+         }
+    });
+    
+    $('#single-animal-select').on('change', function() {
+         selectedSingleAnimal = $(this).val();
+         $('#query-error').slideUp();
+         $('.num').eq(3).css("background-color", "grey");
+    }); 
+    
+    $('#multi-animals-select').on('change', function() {
+        selectedMultiAnimals  = $(this).val();
+         $('#query-error').slideUp();
+         $('.num').eq(3).css("background-color", "grey");
+    });
+    
+
+//================================================================  Validate Query
+
+    function validateQuery() {
+
+        var validEnergyTarget    = $("#energy-target-selector").val();
+        var validProjectsKeys    = $('input:checkbox[name=projectsWith]');
+        var ValidWithDisturbance = $('input:radio[name=withDisturbance]');
+        var ValidWithOverlap     = $('input:radio[name=withOverlap]');
+        var validSingleAnimal    = $("#single-animal-select").val();
+        var validMultiAnimals    = $("#multi-animals-select").val();
+        var selectedWithOvelap   = $('input:radio[name=withOverlap]:checked').val();
+
+    if(validEnergyTarget == 0 ){
+            $('#query-error').slideDown();
+            $('.num').eq(0).css("background-color", "#FF6600");
+            return false;
+        } 
+        
+    else if(validProjectsKeys.is(':checked') == false ){
+            $('#query-error').slideDown();
+            $('.num').eq(1).css("background-color", "#FF6600");
+            return false;
+        } 
+        
+    else if($(ValidWithDisturbance).is(':checked') == false){
+            $('#query-error').slideDown();
+            $('.num').eq(2).css("background-color", "#FF6600");
+            return false;
+        } 
+     else if($(ValidWithOverlap).is(':checked') == false) {
+            $('#query-error').slideDown();
+            $('.num').eq(3).css("background-color", "#FF6600");
+            return false;
+        } 
+    else if($("input:radio[name=withOverlap]").is(':checked') == true) {
+        if (selectedWithOvelap === "single") {
+            if (validSingleAnimal === "0") {
+                $('#query-error').slideDown();
+                $('.num').eq(3).css("background-color", "#FF6600");
+                return false;
+            }
+        }
+         if (selectedWithOvelap === "multi") {
+            if (validMultiAnimals === "0") {
+                $('#query-error').slideDown();
+                $('.num').eq(3).css("background-color", "#FF6600");
+                return false;
+            }
+
+        }  
+        }
+         return true;
+    }
+    
+
+//================================================================  Reset The Query 
+function resetModel() {
+        $('#query-error').slideUp();
+        $('.num').css("background-color", "grey");
+        $('#energy-target-selector').selectpicker('val', '0');
+        $("#single-animal-select").selectpicker('val', '0');
+        $("#multi-animals-select").selectpicker('val', '0');
+        $('#query-modal').modal('hide');
+        $('#single-list-group').slideUp();
+        $('#multi-list-group').slideUp();
+        $('.panel-collapse.in').collapse('hide');
+        $('#collapseOne').collapse('show');
+        
+        $('select[name=eTargets]').val(0);
+        $('input:checkbox[name=projectsWith]').attr('checked', false);
+        $('input:radio[name=withDisturbance]').attr('checked', false);
+        $('input:radio[name=withOverlap]').attr('checked', false);
+        
+        selectedETarget      = null;
+        selectedETargetNum   = null;
+        selectedETargetStr   = null;
+        selectedSingleAnimal = null;
+        selectedMultiAnimals = null;
+        selectedBalanceType  = "bal";
+        isModelEcolo   = null;
+        isModelSingle  = null;
+        isModelWithDis = null;
+    }
+
+
+ $('.selectpicker').selectpicker();
+
+    $("#custom-drop-down").on("click", function(){
+       $(".custom-menu").slideDown();
+});
+
+    $(".close-custom-drop-down").on("click", function(){
+       $(".custom-menu").slideUp();
+});
+
+
+ var map;
+        var basemap = ['streets','satellite','hybrid','terrain','topo','gray','dark-gray','oceans','national-geographic','osm'];
+            var points = [];
+        require([
+        "esri/map",
+        "dojo/_base/array",
+        "esri/layers/ArcGISDynamicMapServiceLayer",
+        "esri/geometry/Geometry",
+        "esri/geometry/Point",
+        "esri/geometry/webMercatorUtils",
+        "extras/ClusterLayer2",
+        "esri/graphic",
+        "esri/symbols/SimpleMarkerSymbol",
+        "esri/symbols/SimpleLineSymbol",
+        "esri/symbols/SimpleFillSymbol",
+        "esri/symbols/PictureMarkerSymbol",
+        "esri/renderers/ClassBreaksRenderer",
+        "esri/Color",
+        "esri/InfoTemplate",
+        "esri/dijit/HomeButton",
+        "esri/dijit/OverviewMap",
+        "dojo/parser",
+        "esri/layers/GraphicsLayer",
+        "esri/SpatialReference",
+        "esri/dijit/PopupTemplate",
+    
+        "dijit/layout/BorderContainer", 
+        "dijit/layout/ContentPane",
+        "dojo/domReady!"
+        ], function(Map, arrayUtils, ArcGISDynamicMapServiceLayer, Geometry, Point, webMercatorUtils, ClusterLayer, Graphic, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol,PictureMarkerSymbol, ClassBreaksRenderer, Color, InfoTemplate, HomeButton, OverviewMap,   parser, GraphicsLayer, SpatialReference, PopupTemplate) {
+              parser.parse(); 
+                            map = new Map("map", {
+                            center: [-126.687482, 54.793577],
+                            zoom: 5,
+                            basemap: basemap[0]
+                            });
+            
+            
+            
+        var overviewMap = new OverviewMap({
+          map: map,
+            attachTo: "bottom-left",
+             width:250,
+          visible: true
+        });
+        overviewMap.startup();
+     
+            
+      var home = new HomeButton({
+        map: map
+    }, "HomeButton");
+    home.startup();
+ lyrPath="http://renewableapp/nipa/rest/services/RORMap/MapServer";
+    var lyr = new ArcGISDynamicMapServiceLayer(lyrPath);
+  
+         function updateLayerVisibility (index) {   
+            lyr.setVisibleLayers([index]);
+          map.addLayer(lyr);
+         }
+  
+            
+$("#base-map-options").on("change", function () {
+
+      map.setBasemap(basemap[$('option:selected').val()]);
+});
+            
+
+            
+        $(".btn-layers").on("click", function(){
+            var index = $(this).data("index");
+            updateLayerVisibility (index);
+        });
+ 
+    
+            
+   
+ 
+       
+$("body").on("click", "circle", function(){
+ $('.actionList').html('<p>© Renewables Toolbox - SFU</p>');
+});            
+           
+            
+//================================================================  Submitting The Query
+$("#Query-model").on("click", function () {
+    
+    console.log(validateQuery());
+    if(validateQuery()){
+          $('#query-modal').modal('hide');
+    if(isModelEcolo){
+         if(isModelSingle){ 
+             if(isModelWithDis){ 
+                 selectedETarget = selectedETargetNum +"_"+ selectedETargetStr;
+                 var qdata= { token: tok, eTraget : selectedETarget, animal : selectedSingleAnimal, balanceType: selectedBalanceType };
+                 var singleEcoloWith = $.ajax({
+                    type: "POST",
+                    url: "assets/app/singleEcoloWith.php",
+                    data: qdata,
+                    cache: false,
+                    dataType: "JSON",
+                    beforeSend: function() {
+                        console.log(qdata);
+                    }
+                });
+
+                singleEcoloWith.done(function( mapInfo ) {
+                    function createPoints(){
+                for (var i = 0; i < mapInfo.length; i++) {
+                var project = mapInfo[i];
+
+                var point = new Point(project.Longitude, project.Latitude); 
+                var pointSymbol = new SimpleMarkerSymbol(); 
+                pointSymbol.setStyle(SimpleMarkerSymbol.STYLE_CIRCLE);
+                pointSymbol.setSize(12);
+                var pointInfoTemplate = new InfoTemplate(); 
+                pointInfoTemplate.setTitle("Project Details");
+                pointInfoTemplate.setContent('     <div class="list-group marker-info"> <a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Project</span><span class="col-md-3 marker-info-txt"><strong>'+project.ProjectID+'</strong></span></div></a> <a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Road Length</span><span class="col-md-3 marker-info-txt"><strong>'+project.RoadLength+'</strong></span></div></a> <a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Powerline Length</span><span class="col-md-3 marker-info-txt"><strong>'+project.PowerLineLength+'</strong></span></div></a> <a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Penstock</span><span class="col-md-3 marker-info-txt"><strong>'+project.Penstock+'</strong></span></div></a> <a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Installed Capacity</span><span class="col-md-3 marker-info-txt"><strong>'+project.InstalledCapacity+'</strong></span></div></a><a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Annual Firm Energy</span><span class="col-md-3 marker-info-txt"><strong>'+project.AnnualFirmEnergy+'</strong></span></div></a><a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Cost Of Energy</span><span class="col-md-3 marker-info-txt"><strong>'+project.CostOfEnergy+'</strong></span></div></a><a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Footprint</span><span class="col-md-3 marker-info-txt"><strong>'+project.Footprint+'</strong></span></div></a><a href="#" class="list-group-item"><div class="row"><span class="col-md-7 marker-info-txt">Cost Per Year</span><span class="col-md-3 marker-info-txt"><strong>'+project.CostPerYear+'</strong></span></div></a></div> ');
+                var pointGraphic = new Graphic(point, pointSymbol).setInfoTemplate(pointInfoTemplate);
+                points.push(pointGraphic);
+
+
+                }// End of For iterator
+                for (i = 0; i < points.length; ++i) {
+                map.graphics.add(points[i]);
+        }
+                    }
+                     //createPoints();
+function addClusters() {
+      var photoInfo = [];
+            var wgs = new SpatialReference({
+              "wkid": 4326
+            });
+              
+                   
+photoInfo.data = arrayUtils.map(mapInfo, function(p) {
+    var latlng = new Point(parseFloat(p.Longitude), parseFloat(p.Latitude), wgs);
+    var webMercator = webMercatorUtils.geographicToWebMercator(latlng);
+    var attributes = {
+        "Caption": "Project ID: " + p.ProjectID
+    };
+    return {
+        "x": webMercator.x,
+        "y": webMercator.y,
+        "attributes": attributes
+    };
+});
+               
+              console.log(photoInfo.data);
+            // popupTemplate to work with attributes specific to this dataset
+            var popupTemplate = new PopupTemplate({
+              "title": "",
+              "fieldInfos": [{
+                "fieldName": "Caption",
+                visible: true
+              }, {
+                "fieldName": "Name",
+                "label": "By",
+                visible: true
+              }, {
+                "fieldName": "Link",
+                "label": "On Instagram",
+                visible: true
+              }],
+              "mediaInfos": [{
+                "title": "",
+                "caption": "",
+                "type": "image",
+                "value": {
+                  "sourceURL": "{Image}",
+                  "linkURL": "{Link}"
+                }
+              }]
+            });
+
+            // cluster layer that uses OpenLayers style clustering
+            clusterLayer = new ClusterLayer({
+              "data": photoInfo.data,
+              "distance": 100,
+              "id": "clusters",
+              "labelColor": "#fff",
+              "labelOffset": 10,
+              "resolution": map.extent.getWidth() / map.width,
+              "singleColor": "#888",
+              "singleTemplate": popupTemplate
+            });
+            var defaultSym = new SimpleMarkerSymbol().setSize(4);
+            var renderer = new ClassBreaksRenderer(defaultSym, "clusterCount");
+
+            var picBaseUrl = "http://static.arcgis.com/images/Symbols/Shapes/";
+            var blue = new PictureMarkerSymbol(picBaseUrl + "BluePin1LargeB.png", 32, 32).setOffset(0, 15);
+            var green = new PictureMarkerSymbol(picBaseUrl + "GreenPin1LargeB.png", 64, 64).setOffset(0, 15);
+            var red = new PictureMarkerSymbol(picBaseUrl + "RedPin1LargeB.png", 72, 72).setOffset(0, 15);
+            renderer.addBreak(0, 2, blue);
+            renderer.addBreak(2, 200, green);
+            renderer.addBreak(200, 1001, red);
+
+            clusterLayer.setRenderer(renderer);
+            map.addLayer(clusterLayer);
+
+            // close the info window when the map is clicked
+            map.on("click", cleanUp);
+            // close the info window when esc is pressed
+            map.on("key-down", function(e) {
+              if (e.keyCode === 27) {
+                cleanUp();
+              }
+            });
+             function cleanUp() {
+            map.infoWindow.hide();
+            clusterLayer.clearSingles();
+          }
+
+          function error(err) {
+            console.log("something failed: ", err);
+          }
+
+          window.showExtents = function() {
+            var extents = map.getLayer("clusterExtents");
+            if ( extents ) {
+              map.removeLayer(extents);
+            }
+            extents = new GraphicsLayer({ id: "clusterExtents" });
+            var sym = new SimpleFillSymbol().setColor(new Color([205, 193, 197, 0.5]));
+
+            arrayUtils.forEach(clusterLayer._clusters, function(c, idx) {
+              var e = c.attributes.extent;
+              extents.add(new Graphic(new Extent(e[0], e[1], e[2], e[3], map.spatialReference), sym));
+            }, this);
+            map.addLayer(extents, 0);
+          };
+  
+}
+    addClusters();            
+ 
+                    
+                });//end Single Done
+
+                singleEcoloWith.fail(function( jqXHR, textStatus ) {
+                  console.log( "Request failed: " + textStatus );
+                }); 
+                 /* Go to "single- ecolo-dis-yes-tbl" */ }// End of if model->ecolo->single->withDis
+             if(!isModelWithDis){ /* Go to "single- ecolo-dis-no-tbl" */ }// End of if model->ecolo->single->noDis
+         }// End of if model->ecolo->single
+         if(!isModelSingle){
+             if(isModelWithDis){  /* Go to "multi- ecolo-dis-yes-tbl" */ }// End of if model->ecolo->multi->withDis
+             if(!isModelWithDis){ /* Go to "multi- ecolo-dis-no-tbl" */}// End of if model->ecolo->multi->nohDis
+         }// End of if model->ecolo->multi
+    }
+    if(!isModelEcolo){ /* Go to "econo-tbl" */}
+    } //End Of If is Valid query
+    });
+    
+    $("#resetForm").on("click", function () {
+       resetModel();
+    });            
+            
+            
+            
+            
+        });
