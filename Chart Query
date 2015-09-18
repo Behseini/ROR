@@ -1,0 +1,533 @@
+<?php
+session_start(); 
+header('Content-type: application/json');
+include 'config.php';
+if($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') {
+if(@isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER']=="http://renewablestoolbox.ca/app.php")  {
+		if($_POST['token'] == $_SESSION['token']) {
+				   $animal = $_POST['animal'];
+                   $balance = $_POST['balanceType'];
+                   $eTraget = $_POST['eTraget'];
+$rows = [];
+function generateBPoints($field, $column, $table, $animal, $balance, $eTraget){
+   global ${$field."_Min"};
+   global ${$field."_Max"};
+
+   global ${$field."_Step_1"};
+   global ${$field."_Step_2"};
+   global ${$field."_Step_3"};
+   global ${$field."_Step_4"};
+   global ${$field."_Step_5"};
+   global ${$field."_Step_6"};
+   global ${$field."_Step_7"};
+   global ${$field."_Step_8"};
+    
+   global ${$field."_proj_1"};
+   global ${$field."_proj_2"};
+   global ${$field."_proj_3"};
+   global ${$field."_proj_4"};
+   global ${$field."_proj_5"};
+   global ${$field."_proj_6"};
+   global ${$field."_proj_7"};
+   global ${$field."_proj_8"};
+
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_DATABASE);
+   
+    $query1  = "SELECT MAX(`$column`) AS MaxNum FROM `$table` WHERE `animalID` = '{$animal}' AND `balance` = '{$balance}' AND `{$eTraget}` =1";
+    $result1  = $conn->query($query1);
+    $rowMax   = $result1->fetch_assoc(); 
+    $maxNum   = $rowMax['MaxNum'];
+    ${$field."_Max"} =  $maxNum;
+
+    $query2  = "SELECT MIN(`$column`) AS MinNum FROM `$table` WHERE `animalID` = '{$animal}' AND `balance` = '{$balance}' AND `{$eTraget}` =1";
+    $result2  = $conn->query($query2);
+    $rowMin   = $result2->fetch_assoc(); 
+    $minNum   = $rowMin['MinNum'];
+    ${$field."_Min"} =  $minNum;
+ 
+    $diff = ${$field."_Max"} - ${$field."_Min"};
+    $range =   round($diff/8);
+ 
+    $steps =[
+        ${$field."_Min"},
+        ${$field."_Min"} + $range, 
+        ${$field."_Min"} + ($range*2), 
+        ${$field."_Min"} + ($range*3), 
+        ${$field."_Min"} + ($range*4), 
+        ${$field."_Min"} + ($range*5), 
+        ${$field."_Min"} + ($range*6), 
+        ${$field."_Min"} + ($range*7), 
+        ${$field."_Max"}
+    ];
+ 
+     ${$field."_Step_1"} =  $steps[0];
+     ${$field."_Step_2"} =  $steps[1];
+     ${$field."_Step_3"} =  $steps[2];
+     ${$field."_Step_4"} =  $steps[3];
+     ${$field."_Step_5"} =  $steps[4];
+     ${$field."_Step_6"} =  $steps[5];
+     ${$field."_Step_7"} =  $steps[6];
+     ${$field."_Step_8"} =  $steps[7];
+    
+$query3 = "SELECT SUM(`$column` between $steps[0] and $steps[1]) AS SumBP1 FROM `$table` WHERE `animalID` = '{$animal}' AND `balance` = '{$balance}' AND `{$eTraget}` =1";
+$result3  = $conn->query($query3);
+$sumP1 = $result3->fetch_assoc(); 
+$projinStep1 = $sumP1['SumBP1'];
+${$field."_proj_1"} = $projinStep1;
+       
+$query4 = "SELECT SUM(`$column` between $steps[1] and $steps[2]) AS SumBP2 FROM `$table` WHERE `animalID` = '{$animal}' AND `balance` = '{$balance}' AND `{$eTraget}` =1";
+$result4  = $conn->query($query4);
+$sumP2 = $result4->fetch_assoc(); 
+$projinStep2 = $sumP2['SumBP2'];
+${$field."_proj_2"} = $projinStep2;
+    
+$query5 = "SELECT SUM(`$column` between $steps[2] and $steps[3]) AS SumBP3 FROM `$table` WHERE `animalID` = '{$animal}' AND `balance` = '{$balance}' AND `{$eTraget}` =1";
+$result5  = $conn->query($query5);
+$sumP3 = $result5->fetch_assoc(); 
+$projinStep3 = $sumP3['SumBP3'];
+${$field."_proj_3"} = $projinStep3; 
+    
+$query6 = "SELECT SUM(`$column` between $steps[3] and $steps[4]) AS SumBP4 FROM `$table` WHERE `animalID` = '{$animal}' AND `balance` = '{$balance}' AND `{$eTraget}` =1";
+$result6  = $conn->query($query6);
+$sumP4 = $result6->fetch_assoc(); 
+$projinStep4 = $sumP4['SumBP4'];
+${$field."_proj_4"} = $projinStep4;    
+
+$query7 = "SELECT SUM(`$column` between $steps[4] and $steps[5]) AS SumBP5 FROM `$table` WHERE `animalID` = '{$animal}' AND `balance` = '{$balance}' AND `{$eTraget}` =1";
+$result7  = $conn->query($query7);
+$sumP5 = $result7->fetch_assoc(); 
+$projinStep5 = $sumP5['SumBP5'];
+${$field."_proj_5"} = $projinStep5;    
+    
+$query8 = "SELECT SUM(`$column` between $steps[5] and $steps[6]) AS SumBP6 FROM `$table` WHERE `animalID` = '{$animal}' AND `balance` = '{$balance}' AND `{$eTraget}` =1";
+$result8  = $conn->query($query8);
+$sumP6 = $result8->fetch_assoc(); 
+$projinStep6 = $sumP6['SumBP6'];
+${$field."_proj_6"} = $projinStep6;
+
+$query9 = "SELECT SUM(`$column` between $steps[6] and $steps[7]) AS SumBP7 FROM `$table` WHERE `animalID` = '{$animal}' AND `balance` = '{$balance}' AND `{$eTraget}` =1";
+$result9  = $conn->query($query9);
+$sumP7 = $result9->fetch_assoc(); 
+$projinStep7 = $sumP7['SumBP7'];
+${$field."_proj_7"} = $projinStep7;
+
+$query10 = "SELECT SUM(`$column` between $steps[7] and $steps[8]) AS SumBP8 FROM `$table` WHERE `animalID` = '{$animal}' AND `balance` = '{$balance}' AND `{$eTraget}` =1";
+$result10  = $conn->query($query10);
+$sumP8 = $result10->fetch_assoc(); 
+$projinStep8 = $sumP8['SumBP8'];
+${$field."_proj_8"} = $projinStep8;  
+
+ $conn->close();   
+}
+
+
+generateBPoints("roads", "roadLength", "single-ecolo-dis-no-tbl", $animal, $balance, $eTraget);
+generateBPoints("powerlines", "powerLineLength", "single-ecolo-dis-no-tbl", $animal, $balance, $eTraget);
+generateBPoints("penstlocks", "penstock", "single-ecolo-dis-no-tbl", $animal, $balance, $eTraget);
+generateBPoints("instcaps", "installedCapMw", "single-ecolo-dis-no-tbl", $animal, $balance, $eTraget);
+generateBPoints("annualFirmEnergys", "annualFirmEnergy", "single-ecolo-dis-no-tbl", $animal, $balance, $eTraget);
+generateBPoints("costofenergys", "costOfEnergy", "single-ecolo-dis-no-tbl", $animal, $balance, $eTraget);
+generateBPoints("footprints", "footprint", "single-ecolo-dis-no-tbl", $animal, $balance, $eTraget);
+generateBPoints("costperyears", "costPerYear", "single-ecolo-dis-no-tbl" , $animal, $balance, $eTraget);
+
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_DATABASE);
+
+$temtbl = "CREATE TEMPORARY TABLE IF NOT EXISTS `charts-single-ecolo-dis-no-tbl` (
+           ID int NOT NULL AUTO_INCREMENT,
+          `ecolo_sum_projects` decimal(12,7) DEFAULT 100,
+          `ecolo_sum_roads` decimal(12,7) DEFAULT 100,
+          `ecolo_sum_powerline` decimal(12,7) DEFAULT 100,
+          `ecolo_sum_penstlock` decimal(14,2) DEFAULT 100,       
+          `ecolo_sum_instcap` decimal(14,2) DEFAULT 100,       
+          `ecolo_sum_annualFirmEnergy` decimal(14,2) DEFAULT 100,       
+          `ecolo_sum_costOfEnergy` decimal(14,2) DEFAULT 100,       
+          `ecolo_sum_footprint` decimal(14,2) DEFAULT 100,
+          `ecolo_sum_costPerYear` decimal(14,2) DEFAULT 100,
+          
+          `ecolo_roads_min` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_max` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_step4` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_step8` decimal(10,2) DEFAULT 100,		  
+          `ecolo_roads_proj_in_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_proj_in_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_proj_in_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_proj_in_step4` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_proj_in_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_proj_in_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_proj_in_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_roads_proj_in_step8` decimal(10,2) DEFAULT 100,		  
+          
+          `ecolo_powerline_min` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_max` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_step4` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_step8` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_proj_in_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_proj_in_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_proj_in_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_proj_in_step4` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_proj_in_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_proj_in_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_proj_in_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_powerline_proj_in_step8` decimal(10,2) DEFAULT 100,          
+          
+          `ecolo_penstlock_min` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_max` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_step4` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_step8` decimal(10,2) DEFAULT 100,          
+          `ecolo_penstlock_proj_in_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_proj_in_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_proj_in_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_proj_in_step4` decimal(10,2) DEFAULT 100,         
+          `ecolo_penstlock_proj_in_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_proj_in_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_proj_in_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_penstlock_proj_in_step8` decimal(10,2) DEFAULT 100,
+          
+          `ecolo_instcap_min` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_max` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_step4` decimal(10,2) DEFAULT 100,          
+          `ecolo_instcap_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_step8` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_proj_in_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_proj_in_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_proj_in_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_proj_in_step4` decimal(10,2) DEFAULT 100,          
+          `ecolo_instcap_proj_in_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_proj_in_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_proj_in_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_instcap_proj_in_step8` decimal(10,2) DEFAULT 100,
+          
+          `ecolo_annualFirmEnergy_min` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_max` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_step4` decimal(10,2) DEFAULT 100,          
+          `ecolo_annualFirmEnergy_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_step8` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_proj_in_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_proj_in_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_proj_in_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_proj_in_step4` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_proj_in_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_proj_in_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_proj_in_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_annualFirmEnergy_proj_in_step8` decimal(10,2) DEFAULT 100,
+          
+          `ecolo_costofenergy_min` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_max` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_step4` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_step8` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_proj_in_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_proj_in_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_proj_in_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_proj_in_step4` decimal(10,2) DEFAULT 100,          
+          `ecolo_costofenergy_proj_in_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_proj_in_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_proj_in_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_costofenergy_proj_in_step8` decimal(10,2) DEFAULT 100,
+          
+          `ecolo_footprint_min` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_max` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_step4` decimal(10,2) DEFAULT 100,          
+          `ecolo_footprint_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_step8` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_proj_in_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_proj_in_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_proj_in_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_proj_in_step4` decimal(10,2) DEFAULT 100,           
+          `ecolo_footprint_proj_in_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_proj_in_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_proj_in_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_footprint_proj_in_step8` decimal(10,2) DEFAULT 100, 
+          
+          `ecolo_costperyear_min` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_max` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_step4` decimal(10,2) DEFAULT 100,          
+          `ecolo_costperyear_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_step8` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_proj_in_step1` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_proj_in_step2` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_proj_in_step3` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_proj_in_step4` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_proj_in_step5` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_proj_in_step6` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_proj_in_step7` decimal(10,2) DEFAULT 100,
+          `ecolo_costperyear_proj_in_step8` decimal(10,2) DEFAULT 100,
+          
+           `econo_sum_projects` decimal(12,7) DEFAULT 100,
+           `econo_sum_roads` decimal(12,7) DEFAULT 100,
+           `econo_sum_powerline` decimal(12,7) DEFAULT 100,
+           `econo_sum_penstlock` decimal(14,7) DEFAULT 100,
+           `econo_sum_instcap` decimal(14,7) DEFAULT 100,
+           `econo_sum_annualFirmEnergy` decimal(14,7) DEFAULT 100,
+           `econo_sum_costOfEnergy` decimal(14,7) DEFAULT 100,
+           `econo_sum_footprint` decimal(14,7) DEFAULT 100,
+           `econo_sum_costPerYear` decimal(14,2) DEFAULT 100,
+
+
+         PRIMARY KEY (ID)
+          ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 ;";
+$conn->query($temtbl);
+
+$insertTotbl= "INSERT INTO `charts-single-ecolo-dis-no-tbl`(`ecolo_sum_projects`,
+                                                             `ecolo_sum_roads`, 
+                                                             `ecolo_sum_powerline`,
+                                                             `ecolo_sum_penstlock`,
+                                                             `ecolo_sum_instcap`, 
+                                                             `ecolo_sum_annualFirmEnergy`, 
+                                                             `ecolo_sum_costOfEnergy`, 
+                                                             `ecolo_sum_footprint`, 
+                                                             `ecolo_sum_costPerYear`)
+                                SELECT COUNT(`projID`),
+                                SUM(`roadLength`),
+                                SUM(`powerLineLength`),
+                                SUM(`penstock`),
+                                SUM(`installedCapMw`),
+                                SUM(`annualFirmEnergy`),
+                                SUM(`costOfEnergy`),
+                                SUM(`footprint`),
+                                SUM(`costPerYear`)
+                                FROM `single-ecolo-dis-no-tbl` 
+                                WHERE `animalID` = '{$animal}'
+                                AND `balance` = '{$balance}'
+                                AND `{$eTraget}` =1";
+$conn->query($insertTotbl);
+
+$firstUpdate= " UPDATE `charts-single-ecolo-dis-no-tbl`
+                SET             `ecolo_roads_min` = $roads_Min,
+                                `ecolo_roads_max` = $roads_Max,
+                                `ecolo_roads_step1` = $roads_Step_1,
+                                `ecolo_roads_step2` = $roads_Step_2,
+                                `ecolo_roads_step3` = $roads_Step_3,
+                                `ecolo_roads_step4` = $roads_Step_4,
+                                `ecolo_roads_step5` = $roads_Step_5,
+                                `ecolo_roads_step6` = $roads_Step_6,
+                                `ecolo_roads_step7` = $roads_Step_7,
+                                `ecolo_roads_step8` = $roads_Step_8,		  
+                                `ecolo_roads_proj_in_step1` = $roads_proj_1,
+                                `ecolo_roads_proj_in_step2` = $roads_proj_2,
+                                `ecolo_roads_proj_in_step3` = $roads_proj_3,
+                                `ecolo_roads_proj_in_step4` = $roads_proj_4,
+                                `ecolo_roads_proj_in_step5` = $roads_proj_5,
+                                `ecolo_roads_proj_in_step6` = $roads_proj_6,
+                                `ecolo_roads_proj_in_step7` = $roads_proj_7,
+                                `ecolo_roads_proj_in_step8` = $roads_proj_8,
+                                `ecolo_powerline_min` = $powerlines_Min,
+                                `ecolo_powerline_max` = $powerlines_Max,
+                                `ecolo_powerline_step1` = $powerlines_Step_1,
+                                `ecolo_powerline_step2` = $powerlines_Step_2,
+                                `ecolo_powerline_step3` = $powerlines_Step_3,
+                                `ecolo_powerline_step4` = $powerlines_Step_4,
+                                `ecolo_powerline_step5` = $powerlines_Step_5,
+                                `ecolo_powerline_step6` = $powerlines_Step_6,
+                                `ecolo_powerline_step7` = $powerlines_Step_7,
+                                `ecolo_powerline_step8` = $powerlines_Step_8,
+                                `ecolo_powerline_proj_in_step1` = $powerlines_proj_1,
+                                `ecolo_powerline_proj_in_step2` = $powerlines_proj_2,
+                                `ecolo_powerline_proj_in_step3` = $powerlines_proj_3,
+                                `ecolo_powerline_proj_in_step4` = $powerlines_proj_4,
+                                `ecolo_powerline_proj_in_step5` = $powerlines_proj_5,
+                                `ecolo_powerline_proj_in_step6` = $powerlines_proj_6,
+                                `ecolo_powerline_proj_in_step7` = $powerlines_proj_7,
+                                `ecolo_powerline_proj_in_step8` = $powerlines_proj_8, 
+                                `ecolo_penstlock_min` = $penstlocks_Min,
+                                `ecolo_penstlock_max` = $penstlocks_Max,
+                                `ecolo_penstlock_step1` = $penstlocks_Step_1,
+                                `ecolo_penstlock_step2` = $penstlocks_Step_2,
+                                `ecolo_penstlock_step3` = $penstlocks_Step_3,
+                                `ecolo_penstlock_step4` = $penstlocks_Step_4,
+                                `ecolo_penstlock_step5` = $penstlocks_Step_5,
+                                `ecolo_penstlock_step6` = $penstlocks_Step_6,
+                                `ecolo_penstlock_step7` = $penstlocks_Step_7,
+                                `ecolo_penstlock_step8` = $penstlocks_Step_8,          
+                                `ecolo_penstlock_proj_in_step1` = $penstlocks_proj_1,
+                                `ecolo_penstlock_proj_in_step2` = $penstlocks_proj_2,
+                                `ecolo_penstlock_proj_in_step3` = $penstlocks_proj_3,
+                                `ecolo_penstlock_proj_in_step4` = $penstlocks_proj_4,         
+                                `ecolo_penstlock_proj_in_step5` = $penstlocks_proj_5,
+                                `ecolo_penstlock_proj_in_step6` = $penstlocks_proj_6,
+                                `ecolo_penstlock_proj_in_step7` = $penstlocks_proj_7,
+                                `ecolo_penstlock_proj_in_step8` = $penstlocks_proj_8,
+                                `ecolo_instcap_min` =$instcaps_Min,
+                                `ecolo_instcap_max` =$instcaps_Max,
+                                `ecolo_instcap_step1` =$instcaps_Step_1,
+                                `ecolo_instcap_step2` =$instcaps_Step_2,
+                                `ecolo_instcap_step3` =$instcaps_Step_3,
+                                `ecolo_instcap_step4` =$instcaps_Step_4,          
+                                `ecolo_instcap_step5` =$instcaps_Step_5,
+                                `ecolo_instcap_step6` =$instcaps_Step_6,
+                                `ecolo_instcap_step7` =$instcaps_Step_7,
+                                `ecolo_instcap_step8` =$instcaps_Step_8,
+                                `ecolo_instcap_proj_in_step1` = $instcaps_proj_1,
+                                `ecolo_instcap_proj_in_step2` = $instcaps_proj_2,
+                                `ecolo_instcap_proj_in_step3` = $instcaps_proj_3,
+                                `ecolo_instcap_proj_in_step4` = $instcaps_proj_4,          
+                                `ecolo_instcap_proj_in_step5` = $instcaps_proj_5,
+                                `ecolo_instcap_proj_in_step6` = $instcaps_proj_6,
+                                `ecolo_instcap_proj_in_step7` = $instcaps_proj_7,
+                                `ecolo_instcap_proj_in_step8` = $instcaps_proj_8,
+                                `ecolo_annualFirmEnergy_min` = $annualFirmEnergys_Min,
+                                `ecolo_annualFirmEnergy_max` = $annualFirmEnergys_Max,
+                                `ecolo_annualFirmEnergy_step1` = $annualFirmEnergys_Step_1,
+                                `ecolo_annualFirmEnergy_step2` = $annualFirmEnergys_Step_2,
+                                `ecolo_annualFirmEnergy_step3` = $annualFirmEnergys_Step_3,
+                                `ecolo_annualFirmEnergy_step4` = $annualFirmEnergys_Step_4,          
+                                `ecolo_annualFirmEnergy_step5` = $annualFirmEnergys_Step_5,
+                                `ecolo_annualFirmEnergy_step6` = $annualFirmEnergys_Step_6,
+                                `ecolo_annualFirmEnergy_step7` = $annualFirmEnergys_Step_7,
+                                `ecolo_annualFirmEnergy_step8` = $annualFirmEnergys_Step_8,
+                                `ecolo_annualFirmEnergy_proj_in_step1` = $annualFirmEnergys_proj_1,
+                                `ecolo_annualFirmEnergy_proj_in_step2` = $annualFirmEnergys_proj_2,
+                                `ecolo_annualFirmEnergy_proj_in_step3` = $annualFirmEnergys_proj_3,
+                                `ecolo_annualFirmEnergy_proj_in_step4` = $annualFirmEnergys_proj_4,
+                                `ecolo_annualFirmEnergy_proj_in_step5` = $annualFirmEnergys_proj_5,
+                                `ecolo_annualFirmEnergy_proj_in_step6` = $annualFirmEnergys_proj_6,
+                                `ecolo_annualFirmEnergy_proj_in_step7` = $annualFirmEnergys_proj_7,
+                                `ecolo_annualFirmEnergy_proj_in_step8` = $annualFirmEnergys_proj_8,
+                                `ecolo_costofenergy_min` = $costofenergys_Min,
+                                `ecolo_costofenergy_max` = $costofenergys_Max,
+                                `ecolo_costofenergy_step1` = $costofenergys_Step_1,
+                                `ecolo_costofenergy_step2` = $costofenergys_Step_2,
+                                `ecolo_costofenergy_step3` = $costofenergys_Step_3,
+                                `ecolo_costofenergy_step4` = $costofenergys_Step_4,
+                                `ecolo_costofenergy_step5` = $costofenergys_Step_5,
+                                `ecolo_costofenergy_step6` = $costofenergys_Step_6,
+                                `ecolo_costofenergy_step7` = $costofenergys_Step_7,
+                                `ecolo_costofenergy_step8` = $costofenergys_Step_8,
+                                `ecolo_costofenergy_proj_in_step1` = $costofenergys_proj_1,
+                                `ecolo_costofenergy_proj_in_step2` = $costofenergys_proj_2,
+                                `ecolo_costofenergy_proj_in_step3` = $costofenergys_proj_3,
+                                `ecolo_costofenergy_proj_in_step4` = $costofenergys_proj_4,          
+                                `ecolo_costofenergy_proj_in_step5` = $costofenergys_proj_5,
+                                `ecolo_costofenergy_proj_in_step6` = $costofenergys_proj_6,
+                                `ecolo_costofenergy_proj_in_step7` = $costofenergys_proj_7,
+                                `ecolo_costofenergy_proj_in_step8` = $costofenergys_proj_8,
+                                `ecolo_footprint_min` = $footprints_Min,
+                                `ecolo_footprint_max` = $footprints_Max,
+                                `ecolo_footprint_step1` = $footprints_Step_1,
+                                `ecolo_footprint_step2` = $footprints_Step_2,
+                                `ecolo_footprint_step3` = $footprints_Step_3,
+                                `ecolo_footprint_step4` = $footprints_Step_4,          
+                                `ecolo_footprint_step5` = $footprints_Step_5,
+                                `ecolo_footprint_step6` = $footprints_Step_6,
+                                `ecolo_footprint_step7` = $footprints_Step_7,
+                                `ecolo_footprint_step8` = $footprints_Step_8,
+                                `ecolo_footprint_proj_in_step1` = $footprints_proj_1,
+                                `ecolo_footprint_proj_in_step2` = $footprints_proj_2,
+                                `ecolo_footprint_proj_in_step3` = $footprints_proj_3,
+                                `ecolo_footprint_proj_in_step4` = $footprints_proj_4,           
+                                `ecolo_footprint_proj_in_step5` = $footprints_proj_5,
+                                `ecolo_footprint_proj_in_step6` = $footprints_proj_6,
+                                `ecolo_footprint_proj_in_step7` = $footprints_proj_7,
+                                `ecolo_footprint_proj_in_step8` = $footprints_proj_8, 
+                                `ecolo_costperyear_min` = $costperyears_Min,
+                                `ecolo_costperyear_max` = $costperyears_Max,
+                                `ecolo_costperyear_step1` = $costperyears_Step_1,
+                                `ecolo_costperyear_step2` = $costperyears_Step_2,
+                                `ecolo_costperyear_step3` = $costperyears_Step_3,
+                                `ecolo_costperyear_step4` = $costperyears_Step_4,          
+                                `ecolo_costperyear_step5` = $costperyears_Step_5,
+                                `ecolo_costperyear_step6` = $costperyears_Step_6,
+                                `ecolo_costperyear_step7` = $costperyears_Step_7,
+                                `ecolo_costperyear_step8` = $costperyears_Step_8,
+                                `ecolo_costperyear_proj_in_step1` =$costperyears_proj_1,
+                                `ecolo_costperyear_proj_in_step2` =$costperyears_proj_2,
+                                `ecolo_costperyear_proj_in_step3` =$costperyears_proj_3,
+                                `ecolo_costperyear_proj_in_step4` =$costperyears_proj_4,
+                                `ecolo_costperyear_proj_in_step5` =$costperyears_proj_5,
+                                `ecolo_costperyear_proj_in_step6` =$costperyears_proj_6,
+                                `ecolo_costperyear_proj_in_step7` =$costperyears_proj_7,
+                                `ecolo_costperyear_proj_in_step8` =$costperyears_proj_8;
+           ;
+
+        ";
+
+$conn->query($firstUpdate);
+
+$secondUpdate= " UPDATE `charts-single-ecolo-dis-no-tbl`
+    SET `econo_sum_projects`   = (SELECT COUNT(`projID`) FROM `econo-tbl`  WHERE `{$eTraget}`=1  ),
+    `econo_sum_roads`      = (SELECT SUM(`roadLength`) FROM `econo-tbl`  WHERE `{$eTraget}`=1 ),
+    `econo_sum_powerline`  = (SELECT SUM(`powerLineLength`) FROM `econo-tbl` WHERE `{$eTraget}`=1 ),
+    `econo_sum_penstlock`  = (SELECT SUM(`penstock`) FROM `econo-tbl`  WHERE `{$eTraget}`=1 ),
+    `econo_sum_instcap`    = (SELECT SUM(`installedCapMw`) FROM `econo-tbl`  WHERE `{$eTraget}`=1 ),
+    `econo_sum_annualFirmEnergy` = (SELECT SUM(`annualFirmEnergy`) FROM `econo-tbl`  WHERE `{$eTraget}`=1 ),
+    `econo_sum_costOfEnergy`    = (SELECT SUM(`costOfEnergy`) FROM `econo-tbl`  WHERE `{$eTraget}`=1 ),
+    `econo_sum_footprint`    = (SELECT SUM(`footprint`) FROM `econo-tbl`  WHERE `{$eTraget}`=1 ),
+    `econo_sum_costPerYear`  = (SELECT SUM(`costPerYear`) FROM `econo-tbl`  WHERE `{$eTraget}`=1 )
+               WHERE ID = 1;
+           ;
+
+        ";
+
+$conn->query($secondUpdate);
+
+$query5 = "SELECT *  FROM `charts-single-ecolo-dis-no-tbl`" ;
+$results = $conn->query($query5);
+if ($results) {
+    $row = $results->fetch_array(MYSQLI_NUM);
+    $row = array_map('floatval', $row); 
+   
+}
+// To List Fields Name
+//$fields = $results->fetch_fields();
+//foreach ($fields as $field) {
+//  echo $field->name . "<br />";
+//}
+$conn->close();
+ echo json_encode($row);
+
+           }
+			else {
+		  header('Location: http://renewablestoolbox.ca/login.php');
+			}
+		}
+		else {
+			header('Location: http://renewablestoolbox.ca/login.php');
+		}
+	}
+	else {
+	  header('Location: http://renewablestoolbox.ca/login.php');
+	}
+?>
